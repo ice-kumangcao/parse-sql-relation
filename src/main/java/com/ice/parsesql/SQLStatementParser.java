@@ -7,15 +7,15 @@ import java.util.List;
 
 public interface SQLStatementParser {
 
-    static boolean parse(SqlContext context, SQLStatement statement) {
+    static Table parse(SQLStatement statement) {
         if (statement instanceof SQLSelectStatement) {
-            List<Column>  columns = parseSQLSelectStatement(context, (SQLSelectStatement) statement);
-            return true;
+            List<Column>  columns = parseSQLSelectStatement((SQLSelectStatement) statement);
+            return new Table(null, null, null).addColumns(columns);
         }
-        return false;
+        throw new ParseSQLException(statement.getClass().toString());
     }
 
-    static List<Column> parseSQLSelectStatement(SqlContext context, SQLSelectStatement statement) {
-        return SQLSelectParser.parse(context, statement.getSelect());
+    static List<Column> parseSQLSelectStatement(SQLSelectStatement statement) {
+        return SQLSelectParser.parse(statement.getSelect());
     }
 }

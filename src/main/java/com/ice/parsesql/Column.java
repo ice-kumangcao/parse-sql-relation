@@ -26,4 +26,13 @@ public class Column {
         this.columnName = columnName;
         fromColumn.addAll(new HashSet<>(Arrays.asList(sourceColumns)));
     }
+
+    @Override
+    public String toString() {
+        if (fromColumn != null && fromColumn.size() > 0) {
+            return columnName + " -> " + fromColumn;
+        } else {
+            return table + "." + columnName;
+        }
+    }
 }

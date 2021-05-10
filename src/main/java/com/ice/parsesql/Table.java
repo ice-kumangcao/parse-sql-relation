@@ -23,7 +23,26 @@ public class Table {
         this.table = table;
     }
 
-    public void addColumn(Column column) {
+    public Table addColumn(Column column) {
         columns.add(column);
+        return this;
+    }
+
+    public Table addColumns(List<Column> columns) {
+        this.columns.addAll(columns);
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (database != null) {
+            stringBuilder.append(database).append(".");
+        }
+        if (schema != null) {
+            stringBuilder.append(schema).append(".");
+        }
+        stringBuilder.append(table);
+        return stringBuilder.toString();
     }
 }

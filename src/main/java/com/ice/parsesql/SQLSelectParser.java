@@ -10,8 +10,7 @@ import java.util.List;
  */
 public interface SQLSelectParser {
 
-    static List<Column> parse(SqlContext context, SQLSelect sqlSelect) {
-        List<Column> columns = SQLSelectQueryParser.parse(context, sqlSelect.getQuery());
-        return columns;
+    static List<Column> parse(SQLSelect sqlSelect) {
+        return SQLSelectQueryParser.parse(sqlSelect.getQuery());
     }
 }

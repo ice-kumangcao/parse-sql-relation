@@ -1,9 +1,6 @@
 package com.ice.parsesql;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author ice
@@ -40,5 +37,17 @@ public class TableSource {
             }
         }
         return null;
+    }
+
+    public List<Column> getAllColumn() {
+        List<Column> columns = new ArrayList<>();
+        tableNames.forEach((key, table) -> {
+            columns.addAll(table.columns);
+        });
+        return columns;
+    }
+
+    public void mergeTableSource(TableSource tableSource) {
+        this.tableNames.putAll(tableSource.tableNames);
     }
 }
