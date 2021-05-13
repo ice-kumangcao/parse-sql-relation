@@ -18,7 +18,8 @@ public class TableSource {
         List<Column> columns = tableNames.get(tableName).columns;
         if (columns.isEmpty()) {
             //TODO: 查询table字段元数据
-            return new Column(tableNames.get(tableName), columnName);
+//            return new Column(tableNames.get(tableName), columnName);
+            return null;
         }
         for (Column column : columns) {
             if (column.columnName.equalsIgnoreCase(columnName)) {
@@ -36,7 +37,7 @@ public class TableSource {
                 return column;
             }
         }
-        return null;
+        return new Column(getOneEmptyTable(), columnName);
     }
 
     public List<Column> getAllColumn() {
@@ -45,6 +46,15 @@ public class TableSource {
             columns.addAll(table.columns);
         });
         return columns;
+    }
+
+    private Table getOneEmptyTable() {
+        for (Map.Entry<String, Table> value : tableNames.entrySet()) {
+            if (value.getValue().columns.isEmpty()) {
+                return value.getValue();
+            }
+        }
+        throw new ParseSQLException("not have empty table");
     }
 
     public void mergeTableSource(TableSource tableSource) {

@@ -3,6 +3,7 @@ package com.ice.parsesql;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.expr.SQLAllColumnExpr;
 import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
+import com.alibaba.druid.sql.ast.expr.SQLMethodInvokeExpr;
 import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
 import com.alibaba.druid.sql.ast.statement.*;
 
@@ -49,28 +50,21 @@ public interface SQLSelectQueryParser {
     }
 
     static List<Column> parseSQLSelectItem(SQLSelectItem item, TableSource tableSource) {
-//        List<SQLExpr> exprs = SQLExprParser.getBaseSQLExpr(item.getExpr());
         SQLExpr expr = item.getExpr();
         String alias = item.getAlias();
-        if (expr instanceof SQLIdentifierExpr) {
-            String columnName = ((SQLIdentifierExpr) expr).getName();
-            Column column = tableSource.getColumn(columnName);
-            if (alias == null) {
-                alias = columnName;
+        List<Column> columns = SQLExprParser.parseSQLExpr(expr, tableSource);
+        if (expr instanceof SQLAllColumnExpr) {
+            return columns;
+        } else {
+            if (alias != null && columns.size() == 1) {
+                columns.get(0).columnName = alias;
             }
-            return Collections.singletonList(new Column(alias, column));
-        } else if (expr instanceof SQLPropertyExpr) {
-            SQLPropertyExpr sqlPropertyExpr = (SQLPropertyExpr) expr;
-            String columnName = sqlPropertyExpr.getName();
-            String tableName = sqlPropertyExpr.getOwnerName();
-            Column column = tableSource.getColumn(tableName, columnName);
-            if (alias == null) {
-                alias = columnName;
+            if (columns.isEmpty()) {
+                return Collections.singletonList(new Column(alias));
+            } else if (columns.size() == 1) {
+                return columns;
             }
-            return Collections.singletonList(new Column(alias, column));
-        } else if (expr instanceof SQLAllColumnExpr) {
-            return tableSource.getAllColumn();
+            throw new ParseSQLException("columns size error");
         }
-        throw new ParseSQLException(expr.getClass().toString());
     }
 }

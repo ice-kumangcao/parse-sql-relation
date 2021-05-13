@@ -1,6 +1,7 @@
 package com.ice.parsesql;
 
 import com.alibaba.druid.sql.ast.statement.SQLSelect;
+import com.alibaba.druid.sql.ast.statement.SQLWithSubqueryClause;
 
 import java.util.List;
 
@@ -11,6 +12,8 @@ import java.util.List;
 public interface SQLSelectParser {
 
     static List<Column> parse(SQLSelect sqlSelect) {
+        //TODO: 解析with语句
+        SQLWithSubqueryClause sqlWithSubquery  = sqlSelect.getWithSubQuery();
         return SQLSelectQueryParser.parse(sqlSelect.getQuery());
     }
 }

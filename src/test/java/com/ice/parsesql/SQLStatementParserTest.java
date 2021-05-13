@@ -3,22 +3,44 @@ package com.ice.parsesql;
 import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class SQLStatementParserTest {
 
-    static String sql1 = "select * from (select id from test) union all select id from test";
+    String filePath = "C:\\Users\\ice\\Desktop\\select-sqls";
 
-    static String sql2 = "select t1.c1, t2.c1 from test1 t1 left join test2 t2 on test1.id = test2.id";
+    String fileName;
 
-    @Test
-    public void test() {
-        List<SQLStatement> sqlStatements = SQLUtils.parseStatements(sql2, DbType.mysql);
+    public void parseSQL(String sql) {
+        List<SQLStatement> sqlStatements = SQLUtils.parseStatements(sql, DbType.sqlserver);
         for (SQLStatement statement : sqlStatements) {
             Table table = SQLStatementParser.parse(statement);
             System.out.println();
         }
+    }
+
+    @Test
+    public void parseFileByName() throws Exception {
+        String fileName = "1002.sql";
+        parseFile(new File(filePath + "\\" + fileName));
+    }
+
+    @Test
+    public void parseFiles() throws Exception {
+        for (int i = 4; i < 1948; i++) {
+            parseFile(new File(filePath + "\\" + i + ".sql"));
+        }
+    }
+
+    public void parseFile(File file) throws Exception {
+        fileName = file.getName();
+        String sql = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+        System.out.println(fileName);
+        parseSQL(sql);
     }
 }

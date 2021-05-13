@@ -27,6 +27,11 @@ public class Column {
         fromColumn.addAll(new HashSet<>(Arrays.asList(sourceColumns)));
     }
 
+    Column(String columnName, List<Column> columns) {
+        this.columnName = columnName;
+        this.fromColumn.addAll(columns);
+    }
+
     @Override
     public String toString() {
         if (fromColumn != null && fromColumn.size() > 0) {

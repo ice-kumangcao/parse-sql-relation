@@ -3,9 +3,7 @@ package com.ice.parsesql;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.expr.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -26,13 +24,21 @@ public class SQLExprParser {
             if (isBaseSQLExpr(expr)) {
                 finalResult.add(expr);
             } else {
-                finalResult.addAll(getBaseExpr(expr));
+                temResult.addAll(getChildrenSQLExpr(expr));
             }
         }
         return finalResult;
     }
 
-    static List<SQLExpr> getBaseExpr(SQLExpr expr) {
+    static List<SQLExpr> getChildrenSQLExpr(SQLExpr expr) {
+        if (expr instanceof SQLMethodInvokeExpr) {
+            return ((SQLMethodInvokeExpr) expr).getArguments();
+        } else if (expr instanceof SQLCastExpr) {
+            return Collections.singletonList(((SQLCastExpr) expr).getExpr());
+        } else if (expr instanceof SQLBinaryOpExpr) {
+            SQLBinaryOpExpr binaryOpExpr = (SQLBinaryOpExpr) expr;
+            return Arrays.asList(binaryOpExpr.getLeft(), binaryOpExpr.getRight());
+        }
         throw new IllegalArgumentException(expr.getClass().toString());
     }
 
@@ -44,5 +50,40 @@ public class SQLExprParser {
                 || expr instanceof SQLVariantRefExpr
                 || expr instanceof SQLQueryExpr
                 || expr instanceof SQLNCharExpr;
+    }
+
+    static List<Column> parseSQLExpr(SQLExpr expr, TableSource tableSource) {
+        if (isBaseSQLExpr(expr)) {
+            if (expr instanceof SQLIdentifierExpr) {
+                return parseSQLIdentifierExpr((SQLIdentifierExpr) expr, tableSource);
+            } else if (expr instanceof SQLPropertyExpr) {
+                return parseSQLPropertyExpr((SQLPropertyExpr) expr, tableSource);
+            } else if (expr instanceof SQLAllColumnExpr) {
+                return tableSource.getAllColumn();
+            } else if (expr instanceof SQLIntegerExpr
+                    || expr instanceof SQLCharExpr
+                    || expr instanceof SQLNumberExpr) {
+                return Collections.emptyList();
+            }
+            throw new ParseSQLException(expr.getClass().toString());
+        } else {
+            List<SQLExpr> sqlExprs = getBaseSQLExpr(expr);
+            List<Column> sourceColumns = new ArrayList<>();
+            sqlExprs.forEach(sqlExpr -> sourceColumns.addAll(parseSQLExpr(sqlExpr, tableSource)));
+            return Collections.singletonList(new Column(null, sourceColumns));
+        }
+    }
+
+    static List<Column> parseSQLIdentifierExpr(SQLIdentifierExpr expr, TableSource tableSource) {
+        String columnName = expr.getName();
+        Column column = tableSource.getColumn(columnName);
+        return Collections.singletonList(new Column(columnName, column));
+    }
+
+    static List<Column> parseSQLPropertyExpr(SQLPropertyExpr expr, TableSource tableSource) {
+        String columnName = expr.getName();
+        String tableName = expr.getOwnerName();
+        Column column = tableSource.getColumn(tableName, columnName);
+        return Collections.singletonList(new Column(columnName, column));
     }
 }
