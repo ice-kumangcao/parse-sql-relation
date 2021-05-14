@@ -75,15 +75,15 @@ public class SQLExprParser {
     }
 
     static List<Column> parseSQLIdentifierExpr(SQLIdentifierExpr expr, TableSource tableSource) {
-        String columnName = expr.getName();
+        String columnName = StringUtils.removeNameQuotes(expr.getName());
         Column column = tableSource.getColumn(columnName);
         return Collections.singletonList(new Column(columnName, column));
     }
 
     static List<Column> parseSQLPropertyExpr(SQLPropertyExpr expr, TableSource tableSource) {
-        String columnName = expr.getName();
+        String columnName = StringUtils.removeNameQuotes(expr.getName());
         String tableName = expr.getOwnerName();
-        Column column = tableSource.getColumn(tableName, columnName);
+        Column column = tableSource.getColumn(tableName, columnName, true);
         return Collections.singletonList(new Column(columnName, column));
     }
 }

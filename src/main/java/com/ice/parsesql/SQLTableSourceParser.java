@@ -28,7 +28,7 @@ public interface SQLTableSourceParser {
         TableSource tables = new TableSource();
         Table table = new Table(null, null, alis);
         table.columns.addAll(columns);
-        tables.tableNames.put(alis, table);
+        tables.addTable(alis, table);
         return tables;
     }
 
@@ -42,7 +42,7 @@ public interface SQLTableSourceParser {
     static TableSource parseSQLExprTableSource(SQLExprTableSource tableSource) {
         Table table = new Table(tableSource.getCatalog(), tableSource.getSchema(), tableSource.getTableName());
         TableSource tables = new TableSource();
-        tables.tableNames.put(tableSource.computeAlias(), table);
+        tables.addTable(tableSource.computeAlias(), table);
         return tables;
     }
 }

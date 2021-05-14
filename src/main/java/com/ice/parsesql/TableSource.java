@@ -8,17 +8,27 @@ import java.util.*;
  */
 public class TableSource {
 
-    Map<String, Table> tableNames = new HashMap<>();
+    private Map<String, Table> tableNames = new HashMap<>();
 
+    public void addTable(Table table) {
+        tableNames.put(table.table.toLowerCase(), table);
+    }
 
-    public Column getColumn(String tableName, String columnName) {
+    public void addTable(String tableName, Table table) {
+        tableNames.put(tableName.toLowerCase(), table);
+    }
+
+    public Column getColumn(String tableName, String columnName, boolean distinct) {
+        tableName = tableName.toLowerCase();
         if (!tableNames.containsKey(tableName)) {
             throw new ParseSQLException();
         }
         List<Column> columns = tableNames.get(tableName).columns;
         if (columns.isEmpty()) {
             //TODO: 查询table字段元数据
-//            return new Column(tableNames.get(tableName), columnName);
+            if (distinct) {
+                return new Column(tableNames.get(tableName), columnName);
+            }
             return null;
         }
         for (Column column : columns) {
@@ -32,7 +42,7 @@ public class TableSource {
     public Column getColumn(String columnName) {
         Set<String> keys = tableNames.keySet();
         for (String key : keys) {
-            Column column = getColumn(key, columnName);
+            Column column = getColumn(key, columnName, false);
             if (column != null) {
                 return column;
             }
