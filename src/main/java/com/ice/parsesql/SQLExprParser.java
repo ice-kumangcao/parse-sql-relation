@@ -12,6 +12,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class SQLExprParser {
 
+    private Table fromTable;
+
+    private SQLExpr expr;
+
+    SQLExprParser(SQLExpr expr, Table fromTable) {
+        this.expr = expr;
+        this.fromTable = fromTable;
+    }
+
     static List<SQLExpr> getBaseSQLExpr(SQLExpr sqlExpr) {
         List<SQLExpr> finalResult = new ArrayList<>();
         Queue<SQLExpr> temResult = new LinkedBlockingQueue<>();
@@ -52,14 +61,19 @@ public class SQLExprParser {
                 || expr instanceof SQLNCharExpr;
     }
 
-    static List<Column> parseSQLExpr(SQLExpr expr, TableSource tableSource) {
+    static List<Column> parseSQLExpr(SQLExpr expr, Table fromTable) {
+        SQLExprParser parser = new SQLExprParser(expr, fromTable);
+        return parser.parseSQLExpr0();
+    }
+
+    private List<Column> parseSQLExpr0() {
         if (isBaseSQLExpr(expr)) {
             if (expr instanceof SQLIdentifierExpr) {
-                return parseSQLIdentifierExpr((SQLIdentifierExpr) expr, tableSource);
+                return parseSQLIdentifierExpr((SQLIdentifierExpr) expr);
             } else if (expr instanceof SQLPropertyExpr) {
-                return parseSQLPropertyExpr((SQLPropertyExpr) expr, tableSource);
+                return parseSQLPropertyExpr((SQLPropertyExpr) expr);
             } else if (expr instanceof SQLAllColumnExpr) {
-                return tableSource.getAllColumn();
+                return fromTable.getColumns();
             } else if (expr instanceof SQLIntegerExpr
                     || expr instanceof SQLCharExpr
                     || expr instanceof SQLNumberExpr) {
@@ -69,21 +83,21 @@ public class SQLExprParser {
         } else {
             List<SQLExpr> sqlExprs = getBaseSQLExpr(expr);
             List<Column> sourceColumns = new ArrayList<>();
-            sqlExprs.forEach(sqlExpr -> sourceColumns.addAll(parseSQLExpr(sqlExpr, tableSource)));
+            sqlExprs.forEach(sqlExpr -> sourceColumns.addAll(parseSQLExpr(sqlExpr, fromTable)));
             return Collections.singletonList(new Column(null, sourceColumns));
         }
     }
 
-    static List<Column> parseSQLIdentifierExpr(SQLIdentifierExpr expr, TableSource tableSource) {
+    private List<Column> parseSQLIdentifierExpr(SQLIdentifierExpr expr) {
         String columnName = StringUtils.removeNameQuotes(expr.getName());
-        Column column = tableSource.getColumn(columnName);
+        Column column = fromTable.getColumn(columnName);
         return Collections.singletonList(new Column(columnName, column));
     }
 
-    static List<Column> parseSQLPropertyExpr(SQLPropertyExpr expr, TableSource tableSource) {
+    private List<Column> parseSQLPropertyExpr(SQLPropertyExpr expr) {
         String columnName = StringUtils.removeNameQuotes(expr.getName());
         String tableName = expr.getOwnerName();
-        Column column = tableSource.getColumn(tableName, columnName, true);
+        Column column = fromTable.getColumn(tableName, columnName);
         return Collections.singletonList(new Column(columnName, column));
     }
 }

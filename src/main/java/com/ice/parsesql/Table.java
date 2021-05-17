@@ -1,7 +1,10 @@
 package com.ice.parsesql;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author ice
@@ -9,29 +12,78 @@ import java.util.List;
  */
 public class Table {
 
-    String database;
+    private String database;
 
-    String schema;
+    private String schema;
 
-    String table;
+    private String tableName;
 
-    List<Column> columns = new ArrayList<>();
+    private List<Column> columns = new ArrayList<>();
+
+    private Map<String, Table> fromTables = new HashMap<>();
 
     Table(String database, String schema, String table) {
         this.database = database;
         this.schema = schema;
-        this.table = table;
+        this.tableName = table;
     }
 
-    public Table addColumn(Column column) {
+    Table(String alias) {
+        this.tableName = alias;
+    }
+
+    private Table addColumn(Column column) {
         columns.add(column);
         return this;
     }
 
-    public Table addColumns(List<Column> columns) {
-        this.columns.addAll(columns);
+    public Table fromColumns(List<Column> columns) {
+        columns.forEach(column -> {
+            this.columns.add(new Column(this, column.getColumnName(), column));
+        });
         return this;
     }
+
+    public Table fromTable(Table... tables) {
+        for (Table table : tables) {
+            fromColumns(table.getColumns());
+            this.fromTables.put(table.getTableName(), table);
+        }
+        return this;
+    }
+
+    public void mergeTable(Table table) {
+        this.columns.addAll(table.columns);
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public List<Column> getColumns() {
+        return columns;
+    }
+
+    public Column getColumn(String columnName) {
+        List<Column> resultColumns = this.columns.stream().filter(column -> column.getColumnName().equalsIgnoreCase(columnName))
+                .collect(Collectors.toList());
+        if (resultColumns.size() == 1) {
+            return resultColumns.get(0);
+        }
+        throw new ParseSQLException(columnName + "冲突 size:"+resultColumns.size());
+    }
+
+    public Column getColumn(String tableName, String columnName) {
+        List<Column> resultColumns = this.columns.stream().filter(column ->
+                column.getColumnName().equalsIgnoreCase(columnName)
+                        && column.getTable().getTableName().equalsIgnoreCase(tableName))
+                .collect(Collectors.toList());
+        if (resultColumns.size() == 1) {
+            return resultColumns.get(0);
+        }
+        throw new ParseSQLException(tableName + "." + columnName + "冲突 size:"+resultColumns.size());
+    }
+
 
     @Override
     public String toString() {
@@ -42,7 +94,7 @@ public class Table {
         if (schema != null) {
             stringBuilder.append(schema).append(".");
         }
-        stringBuilder.append(table);
+        stringBuilder.append(tableName);
         return stringBuilder.toString();
     }
 }

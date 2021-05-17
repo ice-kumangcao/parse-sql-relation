@@ -10,7 +10,7 @@ public interface SQLStatementParser {
     static Table parse(SQLStatement statement) {
         if (statement instanceof SQLSelectStatement) {
             List<Column>  columns = parseSQLSelectStatement((SQLSelectStatement) statement);
-            return new Table(null, null, null).addColumns(columns);
+            return new Table(null, null, null).fromColumns(columns);
         }
         throw new ParseSQLException(statement.getClass().toString());
     }

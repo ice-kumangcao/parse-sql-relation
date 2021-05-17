@@ -6,12 +6,13 @@ import java.util.*;
  * @author ice
  * @date 5/9/21
  */
+@Deprecated
 public class TableSource {
 
     private Map<String, Table> tableNames = new HashMap<>();
 
     public void addTable(Table table) {
-        tableNames.put(table.table.toLowerCase(), table);
+        tableNames.put(table.getTableName().toLowerCase(), table);
     }
 
     public void addTable(String tableName, Table table) {
@@ -23,7 +24,7 @@ public class TableSource {
         if (!tableNames.containsKey(tableName)) {
             throw new ParseSQLException();
         }
-        List<Column> columns = tableNames.get(tableName).columns;
+        List<Column> columns = tableNames.get(tableName).getColumns();
         if (columns.isEmpty()) {
             //TODO: 查询table字段元数据
             if (distinct) {
@@ -32,7 +33,7 @@ public class TableSource {
             return null;
         }
         for (Column column : columns) {
-            if (column.columnName.equalsIgnoreCase(columnName)) {
+            if (column.getColumnName().equalsIgnoreCase(columnName)) {
                 return column;
             }
         }
@@ -53,14 +54,14 @@ public class TableSource {
     public List<Column> getAllColumn() {
         List<Column> columns = new ArrayList<>();
         tableNames.forEach((key, table) -> {
-            columns.addAll(table.columns);
+            columns.addAll(table.getColumns());
         });
         return columns;
     }
 
     private Table getOneEmptyTable() {
         for (Map.Entry<String, Table> value : tableNames.entrySet()) {
-            if (value.getValue().columns.isEmpty()) {
+            if (value.getValue().getColumns().isEmpty()) {
                 return value.getValue();
             }
         }

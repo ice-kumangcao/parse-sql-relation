@@ -13,11 +13,11 @@ public interface SQLSelectParser {
 
     static List<Column> parse(SQLSelect sqlSelect) {
         //TODO: 解析with语句
-        TableSource tableSource;
+        TableSource tableSource = null;
         if (sqlSelect.getWithSubQuery() != null) {
             tableSource = parseSQLWithSubQuery(sqlSelect.getWithSubQuery());
         }
-        return SQLSelectQueryParser.parse(sqlSelect.getQuery());
+        return SQLSelectQueryParser.parse(sqlSelect.getQuery(), tableSource);
     }
 
     static TableSource parseSQLWithSubQuery(SQLWithSubqueryClause sqlWithSubquerys) {
@@ -30,7 +30,7 @@ public interface SQLSelectParser {
     static Table parseSQLWithSubqueryEntry(SQLWithSubqueryClause.Entry entry) {
         String tableName = entry.getAlias();
         List<Column> columns = SQLSelectParser.parse(entry.getSubQuery());
-        return new Table(null, null, tableName).addColumns(columns);
+        return new Table(null, null, tableName).fromColumns(columns);
     }
 
 }
