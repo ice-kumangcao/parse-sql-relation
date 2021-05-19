@@ -47,7 +47,7 @@ public class Table {
     public Table fromTable(Table... tables) {
         for (Table table : tables) {
             fromColumns(table.getColumns());
-            this.fromTables.put(table.getTableName(), table);
+            this.fromTables.put(table.getTableName().toLowerCase(), table);
         }
         return this;
     }

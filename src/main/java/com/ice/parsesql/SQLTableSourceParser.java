@@ -44,6 +44,9 @@ public class SQLTableSourceParser {
     private Table parseSQLJoinTableSource(SQLJoinTableSource tableSource) {
         Table leftTable = SQLTableSourceParser.parse(tableSource.getLeft());
         Table rightTable = SQLTableSourceParser.parse(tableSource.getRight());
+        if (tableSource.getLeft() instanceof SQLJoinTableSource) {
+            return leftTable.fromTable(rightTable);
+        }
         Table table = new Table(null);
         table.fromTable(leftTable, rightTable);
         return table;
